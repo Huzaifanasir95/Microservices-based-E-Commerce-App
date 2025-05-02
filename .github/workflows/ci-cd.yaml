@@ -1,0 +1,125 @@
+name: Microservices CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+    inputs:
+      deploy_to_cluster:
+        description: 'Deploy to Kubernetes cluster'
+        type: boolean
+        default: true
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/online-boutique
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [
+          frontend,
+          cartservice,
+          productcatalogservice,
+          currencyservice,
+          paymentservice,
+          shippingservice,
+          emailservice,
+          checkoutservice,
+          recommendationservice,
+          adservice
+        ]
+    permissions:
+      contents: read
+      packages: write
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v2
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v4
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/${{ matrix.service }}
+          tags: |
+            type=sha,format=short
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            latest
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v4
+        with:
+          context: ./src/${{ matrix.service }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  generate-manifests:
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    outputs:
+      manifests_path: ${{ steps.generate-manifests.outputs.manifests_path }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Generate Kubernetes manifests
+        id: generate-manifests
+        run: |
+          mkdir -p manifests/generated
+          cat kubernetes-manifests/simple-config.yaml | \
+          sed "s|gcr.io/google-samples/microservices-demo/|${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}/|g" | \
+          sed "s|:v0.6.0|:sha-${{ github.sha }}|g" | \
+          sed "s|:v0.2.3|:sha-${{ github.sha }}|g" > manifests/generated/deployment.yaml
+          
+          echo "Generated Kubernetes manifests with updated image references"
+          echo "manifests_path=manifests/generated" >> "$GITHUB_OUTPUT"
+          
+      - name: Upload manifests as artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: kubernetes-manifests
+          path: manifests/generated/
+
+  deploy-to-kubernetes:
+    runs-on: self-hosted
+    needs: [build-and-push, generate-manifests]
+    if: ${{ github.event_name == 'push' || github.event.inputs.deploy_to_cluster == 'true' }}
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Download manifests
+        uses: actions/download-artifact@v3
+        with:
+          name: kubernetes-manifests
+          path: manifests/generated/
+      
+      - name: Deploy to local Kubernetes
+        run: |
+          kubectl apply -f manifests/generated/deployment.yaml
+          
+      - name: Verify deployment
+        run: |
+          echo "Waiting for deployments to be ready..."
+          # Give the deployment some time to complete
+          sleep 30
+          kubectl get deployments
+          kubectl get pods
+          kubectl get services

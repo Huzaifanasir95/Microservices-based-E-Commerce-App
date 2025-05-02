@@ -1,0 +1,62 @@
+name: Setup Self-Hosted Runner
+
+on:
+  workflow_dispatch:
+    inputs:
+      runner_name:
+        description: 'Name for the self-hosted runner'
+        required: true
+        default: 'local-k8s-runner'
+
+jobs:
+  generate-runner-setup:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Create runner setup script
+        run: |
+          mkdir -p runner-setup
+          
+          echo "# Self-Hosted Runner Setup for Local Kubernetes Deployment" > runner-setup/README.md
+          echo "" >> runner-setup/README.md
+          echo "## Setup Instructions" >> runner-setup/README.md
+          echo "" >> runner-setup/README.md
+          echo "1. Download the appropriate runner based on your operating system from: [GitHub Actions runner releases](https://github.com/actions/runner/releases)" >> runner-setup/README.md
+          echo "2. Create a directory on your local machine to install the runner" >> runner-setup/README.md
+          echo "3. Extract the runner package into that directory" >> runner-setup/README.md
+          echo "4. Configure the runner with the following token and information:" >> runner-setup/README.md
+          echo "   - URL: https://github.com/${{ github.repository }}" >> runner-setup/README.md
+          echo "   - Runner name: ${{ github.event.inputs.runner_name }}" >> runner-setup/README.md
+          echo "   - Runner group: Default" >> runner-setup/README.md
+          echo "   - Work folder: _work" >> runner-setup/README.md
+          echo "" >> runner-setup/README.md
+          echo "5. Ensure kubectl is configured to connect to your local Kubernetes cluster" >> runner-setup/README.md
+          echo "6. Start the runner with `./run.sh` or configure it as a service" >> runner-setup/README.md
+          echo "" >> runner-setup/README.md
+          echo "## Prerequisites" >> runner-setup/README.md
+          echo "" >> runner-setup/README.md
+          echo "- Local Kubernetes cluster (Docker Desktop with Kubernetes, Minikube, or kind)" >> runner-setup/README.md
+          echo "- kubectl installed and configured to access your cluster" >> runner-setup/README.md
+          echo "- Docker installed (if building images locally)" >> runner-setup/README.md
+          
+      - name: Upload setup guide
+        uses: actions/upload-artifact@v3
+        with:
+          name: runner-setup-guide
+          path: runner-setup/
+      
+      - name: Create runner token
+        id: create_runner
+        uses: actions/create-github-app-token@v1
+        with:
+          app_id: ${{ secrets.APP_ID }}
+          private_key: ${{ secrets.APP_PRIVATE_KEY }}
+          
+      - name: Output setup instructions
+        run: |
+          echo "::notice::Self-hosted runner setup guide created. Download the artifact to get instructions."
+          echo "::notice::Configure your runner with URL: https://github.com/${{ github.repository }}"
+          echo "::notice::Generated runner token (valid for 1 hour): ${{ steps.create_runner.outputs.token }}"
