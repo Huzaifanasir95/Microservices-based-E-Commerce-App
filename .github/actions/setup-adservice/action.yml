@@ -1,0 +1,20 @@
+name: Setup Java Service
+description: 'Sets up Java environment for Java-based microservices'
+
+runs:
+  using: composite
+  steps:
+    - name: Set up JDK
+      uses: actions/setup-java@v3
+      with:
+        java-version: '11'
+        distribution: 'temurin'
+        cache: gradle
+        
+    - name: Cache Gradle packages
+      uses: actions/cache@v3
+      with:
+        path: ~/.gradle/caches
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
