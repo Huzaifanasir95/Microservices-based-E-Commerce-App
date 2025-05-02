@@ -19,6 +19,9 @@ spec:
         env:
         - name: PORT
           value: "3550"
+        envFrom:
+        - configMapRef:
+            name: service-config
 ---
 apiVersion: v1
 kind: Service

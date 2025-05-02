@@ -22,6 +22,8 @@ spec:
         envFrom:
         - secretRef:
             name: service-credentials
+        - configMapRef:
+            name: service-config
 ---
 apiVersion: v1
 kind: Service
