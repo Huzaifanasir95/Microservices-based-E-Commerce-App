@@ -115,42 +115,28 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
       
-      - name: Validate YAML syntax
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v3
+        with:
+          version: 'latest'
+      
+      - name: Validate Kubernetes manifests with kubectl
         run: |
-          # Simple YAML validation using Python (already installed on GitHub runners)
+          # Use kubectl to validate the k8s manifests without requiring a cluster
           for file in k8s/*.yaml; do
             if [ -f "$file" ]; then
-              echo "Validating $file..."
-              python3 -c "import yaml; yaml.safe_load(open('$file'))"
+              echo "Validating $file with kubectl..."
+              kubectl apply --dry-run=client -f "$file"
               if [ $? -eq 0 ]; then
-                echo "✅ $file is valid YAML"
+                echo "✅ $file is valid"
               else
-                echo "❌ $file has invalid YAML syntax"
+                echo "❌ $file has validation errors"
                 exit 1
               fi
             fi
           done
       
-      - name: Check Kubernetes manifest structure
-        run: |
-          # Check for required fields in manifests
-          for file in k8s/*.yaml; do
-            if [ -f "$file" ]; then
-              echo "Checking structure of $file..."
-              # Check if file contains kind and apiVersion
-              if ! grep -q "kind:" "$file"; then
-                echo "❌ $file is missing 'kind' field"
-                exit 1
-              fi
-              if ! grep -q "apiVersion:" "$file"; then
-                echo "❌ $file is missing 'apiVersion' field"
-                exit 1
-              fi
-              echo "✅ $file has required fields"
-            fi
-          done
-      
-      - name: Check service dependencies
+      - name: Check for common Kubernetes configuration issues
         run: |
           echo "Checking service dependencies in Kubernetes manifests..."
           
