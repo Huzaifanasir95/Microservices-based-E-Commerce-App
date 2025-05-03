@@ -39,7 +39,27 @@ jobs:
     if: github.event_name != 'pull_request'
     strategy:
       matrix:
-        service: [adservice, cartservice, checkoutservice, currencyservice, emailservice, frontend, paymentservice, productcatalogservice, recommendationservice, shippingservice]
+        include:
+          - service: adservice
+            dockerfile_path: ./src/adservice
+          - service: cartservice
+            dockerfile_path: ./src/cartservice/src
+          - service: checkoutservice
+            dockerfile_path: ./src/checkoutservice
+          - service: currencyservice
+            dockerfile_path: ./src/currencyservice
+          - service: emailservice
+            dockerfile_path: ./src/emailservice
+          - service: frontend
+            dockerfile_path: ./src/frontend
+          - service: paymentservice
+            dockerfile_path: ./src/paymentservice
+          - service: productcatalogservice
+            dockerfile_path: ./src/productcatalogservice
+          - service: recommendationservice
+            dockerfile_path: ./src/recommendationservice
+          - service: shippingservice
+            dockerfile_path: ./src/shippingservice
     
     steps:
       - name: Checkout code
@@ -54,19 +74,14 @@ jobs:
           username: ${{ env.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       
-      - name: Determine Dockerfile path
-        id: dockerfile_path
+      - name: Verify Dockerfile exists
         run: |
-          SERVICE=${{ matrix.service }}
-          
-          # Check if the service has a Dockerfile in src directory
-          if [ -f "./src/${SERVICE}/src/Dockerfile" ]; then
-            echo "path=./src/${SERVICE}/src" >> $GITHUB_OUTPUT
-          elif [ -f "./src/${SERVICE}/Dockerfile" ]; then
-            echo "path=./src/${SERVICE}" >> $GITHUB_OUTPUT
-          else
-            echo "No Dockerfile found for ${SERVICE}"
+          if [ ! -f "${{ matrix.dockerfile_path }}/Dockerfile" ]; then
+            echo "Dockerfile not found at ${{ matrix.dockerfile_path }}/Dockerfile"
+            ls -la ${{ matrix.dockerfile_path }}
             exit 1
+          else
+            echo "Found Dockerfile at ${{ matrix.dockerfile_path }}/Dockerfile"
           fi
       
       - name: Extract metadata for Docker
@@ -82,7 +97,8 @@ jobs:
       - name: Build and push ${{ matrix.service }}
         uses: docker/build-push-action@v4
         with:
-          context: ${{ steps.dockerfile_path.outputs.path }}
+          context: ${{ matrix.dockerfile_path }}
+          file: ${{ matrix.dockerfile_path }}/Dockerfile
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
