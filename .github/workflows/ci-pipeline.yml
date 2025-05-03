@@ -62,7 +62,7 @@ jobs:
             dockerfile_path: ./src/recommendationservice
           - service: shippingservice
             dockerfile_path: ./src/shippingservice
-    
+   
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
