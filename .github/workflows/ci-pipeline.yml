@@ -155,7 +155,7 @@ jobs:
           done
           
           echo "Dependencies check completed"
-      
+        
       - name: Check environment variables
         run: |
           echo "Checking environment variables in Kubernetes manifests..."
@@ -179,3 +179,6 @@ jobs:
           echo "✅ All validation checks passed successfully"
           echo "The microservices application is ready to be deployed to Kubernetes"
           echo "Docker images would be deployed from: ${{ env.DOCKER_HUB_USERNAME }}/online-boutique-*"
+
+
+          
