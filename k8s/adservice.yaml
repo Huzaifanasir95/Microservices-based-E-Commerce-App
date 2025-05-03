@@ -12,9 +12,9 @@ spec:
         app: adservice
     spec:
       containers:
-      - name: service
+      - name: adservice  # Changed from "service" to "adservice" for consistency
         image: gcr.io/google-samples/microservices-demo/adservice:v0.6.0
-        ports: 
+        ports:
         - containerPort: 9555
         env:
         - name: PORT
@@ -32,6 +32,6 @@ spec:
   selector:
     app: adservice
   ports:
-  - protocol: TCP 
+  - protocol: TCP
     port: 9555
     targetPort: 9555
