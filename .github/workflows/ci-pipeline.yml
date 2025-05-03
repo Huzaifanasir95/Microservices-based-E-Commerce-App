@@ -117,17 +117,29 @@ jobs:
       
       - name: Validate YAML syntax
         run: |
-          # Simple YAML validation using Python (already installed on GitHub runners)
+          # Install PyYAML for proper multi-document YAML handling
+          pip install PyYAML
+          
+          # Function to validate a YAML file with multiple documents
+          validate_yaml_file() {
+            python3 - << EOF
+import yaml
+import sys
+try:
+    with open("$1", 'r') as file:
+        docs = list(yaml.safe_load_all(file))
+    print(f"✅ {len(docs)} YAML documents in $1 are valid")
+except yaml.YAMLError as e:
+    print(f"❌ YAML error in $1: {e}")
+    sys.exit(1)
+EOF
+          }
+          
+          # Validate each YAML file
           for file in k8s/*.yaml; do
             if [ -f "$file" ]; then
               echo "Validating $file..."
-              python3 -c "import yaml; yaml.safe_load(open('$file'))"
-              if [ $? -eq 0 ]; then
-                echo "✅ $file is valid YAML"
-              else
-                echo "❌ $file has invalid YAML syntax"
-                exit 1
-              fi
+              validate_yaml_file "$file"
             fi
           done
       

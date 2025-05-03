@@ -1,0 +1,35 @@
+# Terraform files
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# Local configurations
+.env
+.env.local
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Dependency directories
+node_modules/
+vendor/
+.npm/
+
+# Log files
+*.log
+logs/
+npm-debug.log*
+
+# Build outputs
+dist/
+build/
+out/
+
+# Miscellaneous
+.DS_Store
+.Trashes
+Thumbs.db
