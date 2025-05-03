@@ -59,3 +59,6 @@ As a DevOps engineer, we need following information from the developer, to deplo
 | recommendationservice  | 8080 | PORT="8080" -  PRODUCT_CATALOG_SERVICE_ADDR="productcatalogservice:3550"    | gcr.io/google-samples/microservices-demo/recommendationservice:v0.6.0    |
 | adservice  | 9555 | PORT="9555"    | gcr.io/google-samples/microservices-demo/adservice:v0.6.0    |
 | loadgenerator  |  | FRONTEND_ADDR="frontend:80" - USERS="10"    | gcr.io/google-samples/microservices-demo/loadgenerator:v0.6.0    |
+
+
+
