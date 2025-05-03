@@ -13,14 +13,13 @@ on:
 env:
   DOCKER_HUB_USERNAME: huzaifanasirrr
 
-# Add permissions block to fix the upload-artifact error
+# Simplify the permissions to only what's needed
 permissions:
   contents: read
   packages: write
   id-token: write
-  actions: write
-  checks: write
-  deployments: write
+  # This permission is specifically needed for actions/upload-artifact@v3
+  actions: read
 
 jobs:
   validate:
@@ -118,6 +117,10 @@ jobs:
     name: Test Deployment Configuration
     runs-on: ubuntu-latest
     needs: validate
+    # Override permissions for this job if needed
+    permissions:
+      contents: read
+      actions: write # Explicitly grant permission to upload artifacts
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -167,7 +170,7 @@ jobs:
           echo "Successfully validated manifest configuration in a test Kubernetes cluster." >> k8s_report.md
       
       - name: Upload manifest report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2  # Downgrade to v2 to avoid permission issues
         with:
           name: kubernetes-manifests-report
           path: k8s_report.md
