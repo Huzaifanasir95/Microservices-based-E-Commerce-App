@@ -54,6 +54,21 @@ jobs:
           username: ${{ env.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_PASSWORD }}
       
+      - name: Determine Dockerfile path
+        id: dockerfile_path
+        run: |
+          SERVICE=${{ matrix.service }}
+          
+          # Check if the service has a Dockerfile in src directory
+          if [ -f "./src/${SERVICE}/src/Dockerfile" ]; then
+            echo "path=./src/${SERVICE}/src" >> $GITHUB_OUTPUT
+          elif [ -f "./src/${SERVICE}/Dockerfile" ]; then
+            echo "path=./src/${SERVICE}" >> $GITHUB_OUTPUT
+          else
+            echo "No Dockerfile found for ${SERVICE}"
+            exit 1
+          fi
+      
       - name: Extract metadata for Docker
         id: meta
         uses: docker/metadata-action@v4
@@ -67,7 +82,7 @@ jobs:
       - name: Build and push ${{ matrix.service }}
         uses: docker/build-push-action@v4
         with:
-          context: ./src/${{ matrix.service }}
+          context: ${{ steps.dockerfile_path.outputs.path }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
