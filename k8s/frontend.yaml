@@ -11,16 +11,14 @@ spec:
       labels:
         app: frontend
     spec:
-      serviceAccountName: frontend
       containers:
       - name: service
-        image: huzaifanasirrr/online-boutique-frontend:latest
+        image: gcr.io/google-samples/microservices-demo/frontend:v0.6.0
         ports: 
         - containerPort: 8080
         env:
         - name: PORT
           value: "8080"
-        # Add these essential environment variables for image display
         - name: DISABLE_TRACING
           value: "1"
         - name: DISABLE_PROFILER
@@ -42,6 +40,6 @@ spec:
   selector:
     app: frontend
   ports:
-  - name: http
+  - protocol: TCP 
     port: 8080
     targetPort: 8080
