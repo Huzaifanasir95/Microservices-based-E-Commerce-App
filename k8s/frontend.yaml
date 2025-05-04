@@ -28,9 +28,37 @@ spec:
           value: "true"
         - name: PUBLIC_ADDR
           value: "http://a46735cf6d152472ab2a7ca6fc5f69fd-244550770.us-east-1.elb.amazonaws.com:8080"
+        # Added environment variables to fix styling issues
+        - name: ENABLE_STACKDRIVER
+          value: "0"
+        - name: ENV_PLATFORM
+          value: "local"
         envFrom:
         - configMapRef:
             name: service-config
+        readinessProbe:
+          initialDelaySeconds: 10
+          httpGet:
+            path: "/_healthz"
+            port: 8080
+            httpHeaders:
+            - name: "Cookie"
+              value: "shop_session-id=x-readiness-probe"
+        livenessProbe:
+          initialDelaySeconds: 10
+          httpGet:
+            path: "/_healthz"
+            port: 8080
+            httpHeaders:
+            - name: "Cookie"
+              value: "shop_session-id=x-liveness-probe"
+        resources:
+          requests:
+            cpu: 100m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
 ---
 apiVersion: v1
 kind: Service
