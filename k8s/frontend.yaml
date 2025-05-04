@@ -19,6 +19,16 @@ spec:
         env:
         - name: PORT
           value: "8080"
+        # Add these environment variables to fix the image loading issue
+        - name: DISABLE_TRACING
+          value: "1"
+        - name: DISABLE_PROFILER
+          value: "1"
+        - name: CYMBAL_BRANDING
+          value: "true"
+        # This environment variable is crucial for product images
+        - name: PUBLIC_ADDR
+          value: "http://a46735cf6d152472ab2a7ca6fc5f69fd-244550770.us-east-1.elb.amazonaws.com:8080"
         envFrom:
         - configMapRef:
             name: service-config
@@ -28,7 +38,7 @@ kind: Service
 metadata:
   name: frontend
 spec:
-  type: ClusterIP
+  type: LoadBalancer
   selector:
     app: frontend
   ports:
