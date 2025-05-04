@@ -11,10 +11,11 @@ spec:
       labels:
         app: checkoutservice
     spec:
+      serviceAccountName: checkoutservice
       containers:
-      - name: service
-        image: gcr.io/google-samples/microservices-demo/checkoutservice:v0.6.0
-        ports: 
+      - name: server
+        image: huzaifanasirrr/online-boutique-checkoutservice:latest
+        ports:
         - containerPort: 5050
         env:
         - name: PORT
@@ -32,6 +33,6 @@ spec:
   selector:
     app: checkoutservice
   ports:
-  - protocol: TCP 
+  - protocol: TCP
     port: 5050
     targetPort: 5050

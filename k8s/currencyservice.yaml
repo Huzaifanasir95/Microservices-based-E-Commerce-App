@@ -11,10 +11,11 @@ spec:
       labels:
         app: currencyservice
     spec:
+      serviceAccountName: currencyservice
       containers:
-      - name: service
-        image: gcr.io/google-samples/microservices-demo/currencyservice:v0.2.3
-        ports: 
+      - name: server
+        image: huzaifanasirrr/online-boutique-currencyservice:latest
+        ports:
         - containerPort: 7000
         env:
         - name: PORT
@@ -32,6 +33,6 @@ spec:
   selector:
     app: currencyservice
   ports:
-  - protocol: TCP 
+  - protocol: TCP
     port: 7000
     targetPort: 7000

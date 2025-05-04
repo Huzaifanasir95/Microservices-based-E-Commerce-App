@@ -11,9 +11,10 @@ spec:
       labels:
         app: adservice
     spec:
+      serviceAccountName: adservice
       containers:
-      - name: adservice  # Changed from "service" to "adservice" for consistency
-        image: gcr.io/google-samples/microservices-demo/adservice:v0.6.0
+      - name: adservice
+        image: huzaifanasirrr/online-boutique-adservice:latest
         ports:
         - containerPort: 9555
         env:

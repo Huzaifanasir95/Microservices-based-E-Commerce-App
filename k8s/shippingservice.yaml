@@ -11,10 +11,11 @@ spec:
       labels:
         app: shippingservice
     spec:
+      serviceAccountName: shippingservice
       containers:
-      - name: service
-        image: gcr.io/google-samples/microservices-demo/shippingservice:v0.6.0
-        ports: 
+      - name: server
+        image: huzaifanasirrr/online-boutique-shippingservice:latest
+        ports:
         - containerPort: 50051
         env:
         - name: PORT
@@ -32,6 +33,6 @@ spec:
   selector:
     app: shippingservice
   ports:
-  - protocol: TCP 
+  - protocol: TCP
     port: 50051
     targetPort: 50051

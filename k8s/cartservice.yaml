@@ -11,14 +11,17 @@ spec:
       labels:
         app: cartservice
     spec:
+      serviceAccountName: cartservice
       containers:
-      - name: service
-        image: gcr.io/google-samples/microservices-demo/cartservice:v0.6.0
-        ports: 
+      - name: server
+        image: huzaifanasirrr/online-boutique-cartservice:latest
+        ports:
         - containerPort: 7070
         env:
         - name: PORT
           value: "7070"
+        - name: REDIS_ADDR
+          value: "redis-cart:6379"
         envFrom:
         - configMapRef:
             name: service-config
@@ -32,6 +35,6 @@ spec:
   selector:
     app: cartservice
   ports:
-  - protocol: TCP 
+  - protocol: TCP
     port: 7070
     targetPort: 7070

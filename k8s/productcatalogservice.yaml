@@ -11,10 +11,11 @@ spec:
       labels:
         app: productcatalogservice
     spec:
+      serviceAccountName: productcatalogservice
       containers:
-      - name: service
-        image: gcr.io/google-samples/microservices-demo/productcatalogservice:v0.6.0
-        ports: 
+      - name: server
+        image: huzaifanasirrr/online-boutique-productcatalogservice:latest
+        ports:
         - containerPort: 3550
         env:
         - name: PORT
@@ -32,6 +33,6 @@ spec:
   selector:
     app: productcatalogservice
   ports:
-  - protocol: TCP 
+  - protocol: TCP
     port: 3550
     targetPort: 3550

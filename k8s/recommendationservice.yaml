@@ -7,14 +7,15 @@ spec:
     matchLabels:
       app: recommendationservice
   template:
-    metadata: 
+    metadata:
       labels:
         app: recommendationservice
     spec:
+      serviceAccountName: recommendationservice
       containers:
-      - name: service
-        image: gcr.io/google-samples/microservices-demo/recommendationservice:v0.6.0
-        ports: 
+      - name: server
+        image: huzaifanasirrr/online-boutique-recommendationservice:latest
+        ports:
         - containerPort: 8080
         env:
         - name: PORT
@@ -32,6 +33,6 @@ spec:
   selector:
     app: recommendationservice
   ports:
-  - protocol: TCP 
+  - protocol: TCP
     port: 8080
     targetPort: 8080

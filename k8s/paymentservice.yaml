@@ -11,17 +11,16 @@ spec:
       labels:
         app: paymentservice
     spec:
+      serviceAccountName: paymentservice
       containers:
-      - name: service
-        image: gcr.io/google-samples/microservices-demo/paymentservice:v0.2.3
-        ports: 
+      - name: server
+        image: huzaifanasirrr/online-boutique-paymentservice:latest
+        ports:
         - containerPort: 50051
         env:
         - name: PORT
           value: "50051"
         envFrom:
-        - secretRef:
-            name: service-credentials
         - configMapRef:
             name: service-config
 ---
@@ -34,6 +33,6 @@ spec:
   selector:
     app: paymentservice
   ports:
-  - protocol: TCP 
+  - protocol: TCP
     port: 50051
     targetPort: 50051

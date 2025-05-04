@@ -11,9 +11,10 @@ spec:
       labels:
         app: frontend
     spec:
+      serviceAccountName: frontend
       containers:
       - name: service
-        image: gcr.io/google-samples/microservices-demo/frontend:v0.6.0
+        image: huzaifanasirrr/online-boutique-frontend:latest
         ports: 
         - containerPort: 8080
         env:
@@ -40,6 +41,6 @@ spec:
   selector:
     app: frontend
   ports:
-  - protocol: TCP 
+  - name: http
     port: 8080
     targetPort: 8080
