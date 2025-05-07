@@ -26,9 +26,9 @@ spec:
           value: "1"
         - name: CYMBAL_BRANDING
           value: "true"
-        # Changed for local deployment
+        # Updated to use domain name instead of localhost
         - name: PUBLIC_ADDR
-          value: "http://localhost:8080"
+          value: "http://onlineboutique.com"
         - name: ENABLE_STACKDRIVER
           value: "0"
         - name: ENV_PLATFORM
@@ -65,11 +65,10 @@ kind: Service
 metadata:
   name: frontend
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
     app: frontend
   ports:
   - name: http
     port: 8080
     targetPort: 8080
-    nodePort: 30080
