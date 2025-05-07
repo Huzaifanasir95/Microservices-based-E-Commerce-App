@@ -26,9 +26,9 @@ spec:
           value: "1"
         - name: CYMBAL_BRANDING
           value: "true"
+        # Changed for local deployment
         - name: PUBLIC_ADDR
-          value: "http://a46735cf6d152472ab2a7ca6fc5f69fd-244550770.us-east-1.elb.amazonaws.com:8080"
-        # Added environment variables to fix styling issues
+          value: "http://localhost:8080"
         - name: ENABLE_STACKDRIVER
           value: "0"
         - name: ENV_PLATFORM
@@ -65,10 +65,11 @@ kind: Service
 metadata:
   name: frontend
 spec:
-  type: LoadBalancer
+  type: NodePort
   selector:
     app: frontend
   ports:
   - name: http
     port: 8080
     targetPort: 8080
+    nodePort: 30080
