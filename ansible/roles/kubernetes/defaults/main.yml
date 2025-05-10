@@ -1,0 +1,30 @@
+---
+# Default values for Kubernetes deployment
+kubernetes_namespace: "shop-microservices"
+kube_config_path: "~/.kube/config"
+kube_context: "docker-desktop"
+argocd_namespace: "argocd"
+
+# Application resources
+application_manifests_path: "{{ playbook_dir }}/../k8s"
+ingress_host: "onlineboutique.com"
+
+# Microservices to deploy
+microservices:
+  - adservice
+  - cartservice
+  - checkoutservice
+  - currencyservice
+  - emailservice
+  - frontend
+  - paymentservice
+  - productcatalogservice
+  - recommendationservice
+  - redis-cart
+  - shippingservice
+
+# ArgoCD configuration
+argocd_enabled: true
+argocd_repo_url: "https://github.com/Huzaifanasir95/Microservices-based-E-Commerce-App.git"
+argocd_target_revision: "HEAD"
+argocd_path: "k8s"

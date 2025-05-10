@@ -1,0 +1,145 @@
+---
+- name: Check if kubectl is installed
+  command: which kubectl
+  register: kubectl_check
+  failed_when: false
+  changed_when: false
+
+- name: Verify Docker Desktop Kubernetes is running
+  shell: kubectl cluster-info
+  environment:
+    KUBECONFIG: "{{ kube_config_path }}"
+  register: cluster_info
+  failed_when: false
+  changed_when: false
+
+- name: Fail if Kubernetes is not running
+  fail:
+    msg: "Kubernetes is not running. Please start Docker Desktop Kubernetes."
+  when: cluster_info.rc != 0
+
+- name: Set Kubernetes context to Docker Desktop
+  command: kubectl config use-context {{ kube_context }}
+  register: context_switch
+  changed_when: context_switch.rc == 0
+  failed_when: false
+
+- name: Create or ensure namespace exists
+  k8s:
+    state: present
+    kubeconfig: "{{ kube_config_path }}"
+    context: "{{ kube_context }}"
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ kubernetes_namespace }}"
+
+- name: Create ArgoCD namespace if enabled
+  k8s:
+    state: present
+    kubeconfig: "{{ kube_config_path }}"
+    context: "{{ kube_context }}"
+    definition:
+      apiVersion: v1
+      kind: Namespace
+      metadata:
+        name: "{{ argocd_namespace }}"
+  when: argocd_enabled | bool
+
+- name: Deploy NGINX Ingress Controller
+  k8s:
+    state: present
+    kubeconfig: "{{ kube_config_path }}"
+    context: "{{ kube_context }}"
+    src: "{{ playbook_dir }}/../kubernetes-manifests/nginx-ingress.yaml"
+  ignore_errors: true
+
+- name: Deploy service account resources
+  k8s:
+    state: present
+    kubeconfig: "{{ kube_config_path }}"
+    context: "{{ kube_context }}"
+    src: "{{ playbook_dir }}/../service-accounts.yaml"
+  ignore_errors: true
+
+- name: Deploy ConfigMap
+  k8s:
+    state: present
+    kubeconfig: "{{ kube_config_path }}"
+    context: "{{ kube_context }}"
+    namespace: "{{ kubernetes_namespace }}"
+    src: "{{ application_manifests_path }}/service-config.yaml"
+
+- name: Deploy all microservices
+  k8s:
+    state: present
+    kubeconfig: "{{ kube_config_path }}"
+    context: "{{ kube_context }}"
+    namespace: "{{ kubernetes_namespace }}"
+    src: "{{ application_manifests_path }}/{{ item }}.yaml"
+  with_items: "{{ microservices }}"
+  ignore_errors: true
+
+- name: Update ingress configuration
+  k8s:
+    state: present
+    kubeconfig: "{{ kube_config_path }}"
+    context: "{{ kube_context }}"
+    namespace: "{{ kubernetes_namespace }}"
+    src: "{{ application_manifests_path }}/ingressservice.yaml"
+
+- name: Deploy ArgoCD if enabled
+  block:
+    - name: Add ArgoCD Helm repository
+      kubernetes.core.helm_repository:
+        name: argo
+        repo_url: https://argoproj.github.io/argo-helm
+      when: argocd_enabled | bool
+
+    - name: Install ArgoCD using Helm
+      kubernetes.core.helm:
+        name: argocd
+        chart_ref: argo/argo-cd
+        release_namespace: "{{ argocd_namespace }}"
+        create_namespace: true
+        values:
+          server:
+            service:
+              type: NodePort
+              nodePortHttp: 30081
+      when: argocd_enabled | bool
+
+    - name: Wait for ArgoCD deployment to be ready
+      kubernetes.core.k8s_info:
+        kind: Deployment
+        name: argocd-server
+        namespace: "{{ argocd_namespace }}"
+      register: argocd_deployment
+      until: argocd_deployment.resources | length > 0 and argocd_deployment.resources[0].status.readyReplicas is defined and argocd_deployment.resources[0].status.readyReplicas > 0
+      retries: 10
+      delay: 30
+      when: argocd_enabled | bool
+
+    - name: Deploy ArgoCD application manifest
+      k8s:
+        state: present
+        kubeconfig: "{{ kube_config_path }}"
+        context: "{{ kube_context }}"
+        namespace: "{{ argocd_namespace }}"
+        src: "{{ playbook_dir }}/../online-boutique-app.yaml"
+      when: argocd_enabled | bool
+  when: argocd_enabled | bool
+
+- name: Get service information
+  shell: kubectl get svc -n {{ kubernetes_namespace }}
+  register: services
+  changed_when: false
+
+- name: Display available services
+  debug:
+    msg: "{{ services.stdout_lines }}"
+
+- name: Get application URL
+  debug:
+    msg: "Your Online Boutique application is available at http://{{ ingress_host }}/"

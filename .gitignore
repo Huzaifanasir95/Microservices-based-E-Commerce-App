@@ -4,6 +4,7 @@
 *.tfstate.*
 .terraform.lock.hcl
 external-dns.yaml
+terraform/
 
 # Local configurations
 .env
@@ -29,6 +30,10 @@ npm-debug.log*
 dist/
 build/
 out/
+
+# Temporary files
+cleanup-commands.txt
+*-patch.yaml
 
 # Miscellaneous
 .DS_Store
