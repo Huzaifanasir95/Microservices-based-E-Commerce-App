@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: online-boutique
+  name: online-boutique-fresh
   namespace: argocd
 spec:
   project: default
@@ -18,5 +18,10 @@ spec:
     automated:
       prune: true
       selfHeal: true
+      allowEmpty: false
     syncOptions:
       - CreateNamespace=true
+      - PruneLast=true
+      - Replace=false
+      - ApplyOutOfSyncOnly=false
+      - Timeout=5m
